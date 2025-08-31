@@ -110,4 +110,7 @@ def download(history_id, file_format):
 if __name__ == "__main__":
     with sqlite3.connect(DATABASE) as con:
         con.execute('CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY, original_text TEXT NOT NULL, corrected_text TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);')
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    # Use Render's port or default to 5000 for local
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
