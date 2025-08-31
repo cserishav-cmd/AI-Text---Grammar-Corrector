@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Text & Grammar Corrector Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --input-bg: #ffffff;
+            --input-text-color: #212529;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #ffffff; /* All text white in dark mode */
+            --card-bg: #1e1e1e;
+            --border-color: #444;
+            --input-bg: #2b2b2b;
+            --input-text-color: #ffffff; /* Input text white in dark mode */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        h1, h2, h3, h4, h5, h6, p, small, strong {
+            color: var(--text-color) !important;
+        }
+
+        /* This rule makes the title change color with the theme */
+        .navbar-brand {
+            color: var(--text-color) !important;
+        }
+
+        .navbar, .card {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .form-control {
+            background-color: var(--input-bg) !important;
+            color: var(--input-text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        .form-control::placeholder { color: #6c757d; }
+        
+        .card { transition: background-color 0.3s, color 0.3s; }
+        .theme-switch { cursor: pointer; }
+        .history-item { margin-bottom: 1rem; }
+        .history-text { white-space: pre-wrap; font-family: monospace; }
+        
+        .history-text-box {
+            background-color: #ffffff; /* Always white background */
+            color: #212529 !important; /* Always dark text - important to override other rules */
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Ensure all text elements use the text color variable */
+        label, .form-label, .text-muted {
+            color: var(--text-color) !important;
+        }
+        
+        .text-muted {
+            opacity: 0.8 !important;
+        }
+        
+        /* Specific rule to keep text in history boxes dark */
+        .history-text-box, 
+        .history-text-box p,
+        .history-text-box strong {
+            color: #212529 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg sticky-top mb-4 shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-gem"></i>AI Text & Grammar Corrector
+            </a>
+            <div class="theme-switch ms-auto">
+                <i class="bi bi-brightness-high-fill" id="theme-icon"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Enter Text to Correct</h5>
+                        <form action="/" method="post">
+                            <textarea class="form-control" name="text" rows="15" placeholder="Type or paste your text here..."></textarea>
+                            <button type="submit" class="btn btn-primary w-100 mt-3">
+                                <i class="bi bi-check-circle-fill"></i> Correct Text
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <h4 class="mb-3"><i class="bi bi-clock-history"></i> Correction History</h4>
+                {% if history %}
+                    {% for item in history %}
+                    <div class="card history-item shadow-sm">
+                        <div class="card-body">
+                            <p><strong>Original:</strong></p>
+                            <p class="history-text history-text-box">{{ item['original_text'] }}</p>
+                            <p><strong>Corrected:</strong></p>
+                            <p class="history-text history-text-box">{{ item['corrected_text'] }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ item['timestamp'] }}</small>
+                                <div>
+                                    <a href="/download/{{ item['id'] }}/txt" class="btn btn-secondary btn-sm" title="Download as .txt">
+                                        <i class="bi bi-file-earmark-text-fill"></i> TXT
+                                    </a>
+                                    <a href="/download/{{ item['id'] }}/pdf" class="btn btn-danger btn-sm" title="Download as .pdf">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Your correction history will appear here.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        // Function to set the theme
+        const setTheme = (theme) => {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                themeIcon.classList.remove('bi-brightness-high-fill');
+                themeIcon.classList.add('bi-moon-stars-fill');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-mode');
+                themeIcon.classList.remove('bi-moon-stars-fill');
+                themeIcon.classList.add('bi-brightness-high-fill');
+                localStorage.setItem('theme', 'light');
+            }
+        };
+
+        // Event listener for the theme switch
+        themeIcon.addEventListener('click', () => {
+            const isDarkMode = body.classList.contains('dark-mode');
+            setTheme(isDarkMode ? 'light' : 'dark');
+        });
+
+        // Apply the saved theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        });
+    </script>
+</body>
+</html>
