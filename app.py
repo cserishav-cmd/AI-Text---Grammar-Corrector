@@ -22,6 +22,23 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+# --- Initialize Database Table ---
+def init_db():
+    with app.app_context():
+        db = get_db()
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY,
+                original_text TEXT NOT NULL,
+                corrected_text TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        db.commit()
+
+# Initialize the database table
+init_db()
+
 # --- Helper Function for Diff Generation ---
 def generate_diff_html(original, corrected):
     """Generates an HTML diff of two strings, highlighting word changes."""
@@ -108,9 +125,5 @@ def download(history_id, file_format):
     return "Invalid format", 400
 
 if __name__ == "__main__":
-    with sqlite3.connect(DATABASE) as con:
-        con.execute('CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY, original_text TEXT NOT NULL, corrected_text TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);')
-    
-    # Use Render's port or default to 5000 for local
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
