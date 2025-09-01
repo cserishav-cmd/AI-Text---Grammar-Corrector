@@ -19,7 +19,7 @@
 
 🎥 Demo Video
 
-👉 Click here to watch the demo video
+👉 [Click here to watch the demo video] (https://youtu.be/L0K1jMdvNGU)
 
 ------------------------------------------------------------------------
 
